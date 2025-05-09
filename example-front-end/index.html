@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp File Sender</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #25D366;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #128C7E;
+        }
+        #status {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>WhatsApp File Sender</h1>
+        <form id="uploadForm">
+            <div class="form-group">
+                <label for="recipientId">Recipient ID:</label>
+                <input type="text" id="recipientId" name="id" required>
+            </div>
+            <div class="form-group">
+                <label for="caption">Caption (optional):</label>
+                <textarea id="caption" name="caption" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="files">Select Files:</label>
+                <input type="file" id="files" name="attachment" multiple required>
+            </div>
+            <button type="submit">Send Files</button>
+        </form>
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const formData = new FormData();
+            const files = document.getElementById('files').files;
+            const recipientId = document.getElementById('recipientId').value;
+            const caption = document.getElementById('caption').value;
+            
+            // Add files to FormData
+            for (let i = 0; i < files.length; i++) {
+                formData.append('attachment', files[i]);
+            }
+            
+            // Add other fields
+            formData.append('id', recipientId);
+            if (caption) {
+                formData.append('caption', caption);
+            }
+
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Sending files...';
+            statusDiv.className = '';
+
+            try {
+                const response = await fetch('http://localhost:3113/send-file', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.text();
+                
+                if (response.ok) {
+                    statusDiv.textContent = result;
+                    statusDiv.className = 'success';
+                    form.reset();
+                } else {
+                    statusDiv.textContent = `Error: ${result}`;
+                    statusDiv.className = 'error';
+                }
+            } catch (error) {
+                statusDiv.textContent = `Error: ${error.message}`;
+                statusDiv.className = 'error';
+            }
+            
+            return false;
+        });
+    </script>
+</body>
+</html>
