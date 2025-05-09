@@ -73,6 +73,7 @@ POST http://localhost:3000/send-plaintext
 | Header | Type | Description |
 | :--- | :--- | :--- |
 | `Content-Type` | `application/json` | **Required**. |
+| `Authorization` | `Bearer your_api_key` | **Required**. |
 
 Request Body:
 ```json
@@ -92,6 +93,8 @@ POST http://localhost:3000/send-file
 
 | Header | Type | Description |
 | :--- | :--- | :--- |
+| `Content-Type` | `multipart/form-data` | **Required**. |
+| `Authorization` | `Bearer your_api_key` | **Required**. |
 
 Form Data:
 - `id` (string): **Required**. Recipient ID(s), separate multiple with comma
@@ -107,6 +110,7 @@ POST http://localhost:3000/send-base64-image
 | Header | Type | Description |
 | :--- | :--- | :--- |
 | `Content-Type` | `application/json` | **Required**. |
+| `Authorization` | `Bearer your_api_key` | **Required**. |
 
 Request Body:
 ```json

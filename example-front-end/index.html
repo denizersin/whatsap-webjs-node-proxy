@@ -112,7 +112,10 @@
             try {
                 const response = await fetch('http://localhost:3113/send-file', {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    headers: {
+                        'Authorization': `Bearer ${"inverizo890789"}`
+                    }
                 });
 
                 const result = await response.text();

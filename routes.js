@@ -6,6 +6,7 @@ const getGroupID = require('./scripts/getGroupId');
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() });
 const base64ImageContent = require('./scripts/base64ImageContent');
+const verifyKey = require('./utils/uth');
 
 module.exports = function (app, client) {
   // Health check route
@@ -14,7 +15,7 @@ module.exports = function (app, client) {
   });
 
   // Send plaintext message to the given id
-  app.post('/send-plaintext', async (req, res) => {
+  app.post('/send-plaintext', verifyKey, async (req, res) => {
     const { message, id } = req.body;
 
     if (Object.keys(message).length === 0 || !id) {
@@ -31,7 +32,7 @@ module.exports = function (app, client) {
   });
 
 
-  app.get('/check-connection', async (req, res) => {
+  app.get('/check-connection', verifyKey, async (req, res) => {
     const connection = await client?.getState()
     console.log(connection, 'connection');
     if (connection === 'CONNECTED') {
@@ -44,6 +45,7 @@ module.exports = function (app, client) {
   // Send file to the given id
   app.post(
     '/send-file',
+    verifyKey,
     upload.array('attachment'),
     async (req, res) => {
       const { caption, id } = req.body;
@@ -66,7 +68,7 @@ module.exports = function (app, client) {
   );
 
   // Get group ID by group name
-  app.post('/get-group-id', async (req, res) => {
+  app.post('/get-group-id', verifyKey, async (req, res) => {
     const { groupName } = req.body;
     if (!groupName)
       return res.status(400).send('Bad Request: Group Name is required!');
@@ -78,7 +80,7 @@ module.exports = function (app, client) {
   });
 
   // Send base64 image to the given id
-  app.post('/send-base64-image', async (req, res) => {
+  app.post('/send-base64-image', verifyKey, async (req, res) => {
     const { caption, id, images: base64Images } = req.body;
 
     if (!base64Images || base64Images.length === 0 || !id) {

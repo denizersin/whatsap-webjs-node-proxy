@@ -74,26 +74,33 @@ client.on('ready', () => startServer());
 
 client.on('message', async (message) => {
   const { body, from, hasMedia } = message;
+  let media = null;
   if (hasMedia) {
-    const media = await message.downloadMedia();
+    media = await message.downloadMedia();
     console.log(media, 'media');
   }
 
 
-  //send message to server
-  await fetch(`${SERVER_URL}/handle-message`, {
-    method: 'POST',
-    body: JSON.stringify({
-      media: hasMedia ? {
-        mimetype: media?.mimetype,
-        data: media?.data,
-        filename: media?.filename,
-        filesize: media?.filesize,
-      } : null,
-      from: from,
-      body: body,
-    }),
-  });
+  try {
+
+    //send message to server
+    await fetch(`${SERVER_URL}/handle-message`, {
+      method: 'POST',
+      body: JSON.stringify({
+        media: hasMedia ? {
+          mimetype: media?.mimetype,
+          data: media?.data,
+          filename: media?.filename,
+          filesize: media?.filesize,
+        } : null,
+        from: from,
+        body: body,
+      }),
+    });
+  }
+  catch (error) {
+    console.log(error, 'error while sending message to server');
+  }
 
 
 
