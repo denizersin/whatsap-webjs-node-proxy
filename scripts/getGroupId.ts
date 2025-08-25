@@ -1,6 +1,12 @@
-const { logWithDate } = require('../utils/logger');
+import { Client } from 'whatsapp-web.js';
+import { logWithDate } from '../utils/logger.js';
 
-async function getGroupID(client, groupName) {
+interface GroupInfo {
+  id: string;
+  name: string;
+}
+
+export async function getGroupID(client: Client, groupName: string): Promise<string | null> {
   const chats = await client.getChats();
   const targetGroup = chats
     .filter((chat) => chat.isGroup && chat.name === groupName)
@@ -18,6 +24,4 @@ async function getGroupID(client, groupName) {
     logWithDate(`Group ID ${groupName} not found`);
     return null;
   }
-}
-
-module.exports = getGroupID;
+} 

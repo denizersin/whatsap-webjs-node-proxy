@@ -1,12 +1,17 @@
-require('dotenv').config();
-const qrcode = require('qrcode-terminal');
-const { Client, LocalAuth } = require('whatsapp-web.js');
-const { logWithDate } = require('./utils/logger');
-const fs = require('fs');
-const express = require('express');
-const cors = require('cors');
-const routes = require('./routes');
-const { exec } = require('child_process');
+import 'dotenv/config';
+import qrcode from 'qrcode-terminal';
+import Whatsapp, { Message } from 'whatsapp-web.js';
+import { logWithDate } from './utils/logger.js';
+import fs from 'fs';
+import express from 'express';
+import cors from 'cors';
+import routes from './routes.js';
+import { exec } from 'child_process';
+import { Server } from 'http';
+
+const { Client, LocalAuth } = Whatsapp;
+
+
 const app = express();
 const { PORT = 3113 } = process.env;
 
@@ -56,51 +61,53 @@ const client = new Client({
     ],
   },
   authStrategy: new LocalAuth(),
-  dataPath: 'session',
+  // dataPath: 'session',
 });
 
 routes(app, client);
 
 client.initialize();
 
-client.on('qr', (qr) => qrcode.generate(qr, { small: true }));
-client.on('loading_screen', (percent, message) =>
-  log(`Loading: ${percent}% - ${message}`),
-);
+client.on('qr', (qr: string) => qrcode.generate(qr, { small: true }));
+client.on('loading_screen', (percent: number, message: string) => {
+  log(`Loading: ${percent}% - ${message}`);
+});
 client.on('auth_failure', () => log('Authentication failure!'));
 client.on('disconnected', () => log('Client disconnected!'));
 client.on('authenticated', () => log('Client authenticated!'));
-client.on('ready', () => startServer());
+client.on('ready', async () => {
+  startServer()
+});
 
 client.on('message', async (message) => {
   const { body, from, hasMedia } = message;
   let media = null;
   if (hasMedia) {
-    media = await message.downloadMedia();
-    console.log(media, 'media');
+    // media = await message.downloadMedia();
+    // console.log(media, 'media');
   }
 
 
-  try {
+  // try {
 
-    //send message to server
-    await fetch(`${SERVER_URL}/handle-message`, {
-      method: 'POST',
-      body: JSON.stringify({
-        media: hasMedia ? {
-          mimetype: media?.mimetype,
-          data: media?.data,
-          filename: media?.filename,
-          filesize: media?.filesize,
-        } : null,
-        from: from,
-        body: body,
-      }),
-    });
-  }
-  catch (error) {
-    console.log(error, 'error while sending message to server');
-  }
+  //   //send message to server
+  //   await fetch(`${SERVER_URL}/handle-message`, {
+  //     method: 'POST',
+  //     body: JSON.stringify({
+  //       media: hasMedia ? {
+  //         mimetype: media?.mimetype,
+  //         data: media?.data,
+  //         filename: media?.filename,
+  //         filesize: media?.filesize,
+  //       } : null,
+  //       from: from,
+  //       body: body,
+  //     }),
+  //   });
+  // }
+  // catch (error) {
+  //   console.log(error, 'error while sending message to server');
+  // }
 
 
 
@@ -111,7 +118,7 @@ client.on('message', async (message) => {
   if (body === '!jadwaldeo') return handleSchedule(message, from);
 });
 
-function log(message) {
+function log(message: string) {
   logWithDate(message);
   console.log(message);
 }
@@ -123,8 +130,8 @@ function startServer() {
   server.on('error', handleError(server));
 }
 
-function handleError(server) {
-  return (err) => {
+function handleError(server: Server) {
+  return (err: any) => {
     if (err.code === 'EADDRINUSE') {
       console.error(`Port ${PORT} is already in use, trying another port...`);
       server.listen(0);
@@ -134,12 +141,12 @@ function handleError(server) {
   };
 }
 
-async function handlePing(message, from) {
+async function handlePing(message: Message, from: string) {
   message.reply('pong');
   log(`${from}: pinged!`);
 }
 
-function handleLogs(message, from) {
+function handleLogs(message: Message, from: string) {
   fs.readFile('logs/status.log', 'utf8', (err, data) => {
     if (err) return;
     const recentLines = data.trim().split('\n').slice(-10).join('\n');
@@ -148,7 +155,7 @@ function handleLogs(message, from) {
   });
 }
 
-async function handleDeleteMessage(message, body) {
+async function handleDeleteMessage(message: Message, body: string) {
   const messageID = body.split(',')[1];
   try {
     const msg = await client.getMessageById(messageID);
@@ -164,7 +171,7 @@ async function handleDeleteMessage(message, body) {
 
 // Example function to interact with Python script
 // This function assumes you have a Python script named getSchedule.py
-async function handleSchedule(message, from) {
+async function handleSchedule(message: Message, from: string) {
   exec('python3 getSchedule.py', (error, stdout) => {
     if (error) {
       log(`Error getting schedule: ${error}`);

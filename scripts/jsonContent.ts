@@ -1,9 +1,21 @@
-const path = require('path');
-const { MessageMedia } = require('whatsapp-web.js');
-const { logWithDate } = require('../utils/logger');
+import path from 'path';
+import { logWithDate } from '../utils/logger.js';
+import Whatsapp from 'whatsapp-web.js';
+const { MessageMedia } = Whatsapp;
+interface AttachmentFile {
+  originalname: string;
+  mimetype: string;
+  buffer: Buffer;
+}
 
-async function jsonContent(client, caption, attachmentFiles, id) {
-  for (let attachmentFile of attachmentFiles) {
+export async function jsonContent(
+  client: any,
+  caption: string,
+  attachmentFiles: AttachmentFile[],
+  id: string
+): Promise<void> {
+  
+  for (const attachmentFile of attachmentFiles) {
     const ext = path.extname(attachmentFile.originalname).toLowerCase();
 
     let mimetype = attachmentFile.mimetype;
@@ -22,9 +34,9 @@ async function jsonContent(client, caption, attachmentFiles, id) {
     );
 
     try {
-      let chat = await client.getChatById(id);
-      let groupName = chat.name;
-      let sentMessage = await client.sendMessage(id, media, {
+      const chat = await client.getChatById(id);
+      const groupName = chat.name;
+      const sentMessage = await client.sendMessage(id, media, {
         caption: caption,
       });
       logWithDate(
@@ -34,6 +46,4 @@ async function jsonContent(client, caption, attachmentFiles, id) {
       logWithDate(`Error sending message: ${error}`);
     }
   }
-}
-
-module.exports = jsonContent;
+} 
