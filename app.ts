@@ -26,8 +26,10 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.text());
 app.use(express.urlencoded({ extended: true }));
 
+console.log(process.env.PUPETTER_EXECUTABLE_PATH,'pupetter executable path. this should be google chrome and accurate path for it.')
 const client = new Client({
   puppeteer: {
+    executablePath: process.env.PUPETTER_EXECUTABLE_PATH,
     headless: true,
     args: [
       '--disable-accelerated-2d-canvas',
